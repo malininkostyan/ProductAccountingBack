@@ -9,25 +9,25 @@ module.exports = function(app, db) {
         res.send(`DB url ${process.env.DATABASE_URL}`);
     }),
     app.get('/product', async (req, res) => {
-        let warehouses = await db.Models.Warehouse.findAll();
-        res.send(warehouses);
+        let products = await db.Models.Product.findAll();
+        res.send(products);
     });
     app.post('/product/create', async (req, res) => {
         let object = convertToObj(req.body);
         if (object.URL == null || object.author == null || object.categoryName == null) return res.send(false);
-        let warehouse = await db.Models.Warehouse.create({
+        let product = await db.Models.Product.create({
             URL: object.URL,
             author: object.author,
             categoryName: object.categoryName
         });
-        res.send(warehouse);
+        res.send(product);
     });
     app.post('/product/update', async (req, res) => {
         let object = convertToObj(req.body);
 
         let id = parseInt(object.id);
         if (isNaN(id) || object.URL == null || object.author == null || object.categoryName == null) return res.send(false);
-        let product = await db.Models.Warehouse.update({
+        let product = await db.Models.Product.update({
             URL: object.URL,
             author: object.author,
             categoryName: object.categoryName
@@ -44,7 +44,7 @@ module.exports = function(app, db) {
 
         let id = parseInt(object.id);
         if (isNaN(id)) return res.send(false);
-        await db.Models.Warehouse.destroy({
+        await db.Models.Product.destroy({
             where: {
                 id: id,
             } 
