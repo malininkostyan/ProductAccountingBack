@@ -1,32 +1,35 @@
 {
-  "name": "warehouse",
+  "name": "warehouse-back",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js --open"
+
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/malininkostyan/ProductAccountingBack.git"
+    "url": "git+https://github.com/malininkostyan/warehouse-back.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/malininkostyan/ProductAccountingBack/issues"
+    "url": "https://github.com/malininkostyan/warehouse-back/issues"
   },
-  "homepage": "https://github.com/malininkostyan/ProductAccountingBack#readme",
+  "homepage": "https://github.com/malininkostyan/warehouse-back#readme",
   "dependencies": {
     "body-parser": "^1.19.0",
     "express": "^4.17.1",
+    "nodemon": "^1.19.4",
     "pg": "^7.12.1",
     "pg-hstore": "^2.3.3",
-    "sequelize": "^5.19.1"
+    "sequelize": "^5.19.1",
+    "jsonwebtoken": "^8.5.1"
   },
   "engines": {
     "node": "10.16.3",
     "npm": "6.9.0"
   }
 }
-

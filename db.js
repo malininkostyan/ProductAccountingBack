@@ -11,7 +11,7 @@ module.exports = {
             this.sequelize = new Sequelize(process.env.DATABASE_URL);
         }
         else {
-            this.sequelize = new Sequelize('Warehouse', 'postgres', null, {
+            this.sequelize = new Sequelize('warehouse', 'postgres', null, {
                 host: 'localhost',
                 dialect: 'postgres'
             });
