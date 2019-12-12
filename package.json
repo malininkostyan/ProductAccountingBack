@@ -7,7 +7,6 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
     "dev": "nodemon index.js --open"
-
   },
   "repository": {
     "type": "git",
@@ -21,12 +20,16 @@
   "homepage": "https://github.com/malininkostyan/warehouse-back#readme",
   "dependencies": {
     "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "dropbox-v2-api": "^2.4.9",
+    "easyvk": "^2.5.11",
     "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "multer": "^1.4.2",
     "nodemon": "^1.19.4",
     "pg": "^7.12.1",
     "pg-hstore": "^2.3.3",
-    "sequelize": "^5.19.1",
-    "jsonwebtoken": "^8.5.1"
+    "sequelize": "^5.19.1"
   },
   "engines": {
     "node": "10.16.3",
