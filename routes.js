@@ -1,3 +1,6 @@
+//cd C:\"Program Files"\PostgreSQL\11\bin
+//pg_ctl -D /"Program Files"/PostgreSQL/11/data start
+
 let jwt = require('jsonwebtoken');
 const secretKey = "myTestSecretKey";
 const fileLoad = require('./files');
@@ -30,8 +33,18 @@ module.exports = function(app, db) {
     });
 
     app.post('/category', async (req, res) => {       
-        let products = await db.Models.Product.findAll();
+        /*let products = await db.Models.Product.findAll();
         res.send(products);
+*/
+        let object = convertToObj(req.body);
+        object = object.data;   
+        if (object == null || object.findText == null) object = {findText: ''};
+        let products = await db.sequelize.query(`SELECT * FROM searchInProducts('${object.findText}');`);
+        console.log("findtext");
+        console.log(req.body);
+        console.log(object.data);
+        console.log(object.findText);
+        res.send(products[0]);
     });
 
     app.post('/login', async (req, res) => {
