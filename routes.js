@@ -7,17 +7,17 @@ const fileLoad = require('./files');
 const path = require('path');
 const fs = require('fs');
 
+const WebSocketClient = require('websocket').client;
 
-module.exports = function(app, db) {
-    app.use(function(req, res, next) {
-        res.header("Access-Control-Allow-Origin", "http://localhost:4200");
-        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Athorization");
-        if (['/category', '/category/create', '/category/update', '/category/delete'].includes(req.originalUrl)) {
+module.exports = function (app, db) {
+    app.use(function (req, res, next) {
+        res.header("Access-Control-Allow-Origin", /*"https://warehouse73.herokuapp.com"*/"http://localhost:4200");
+        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+        if (['/category/create', '/category/update', '/category/delete'].includes(req.originalUrl)) {
             let object = convertToObj(req.body);
-            if (req.originalUrl === '/category' && object.pageName !== "admin") {
-                return next();
-            }
-            jwt.verify(object.token, secretKey, async function(err, decoded) {
+
+            console.log(req.body);
+            jwt.verify(object.token, secretKey, async function (err, decoded) {
                 if (err) return res.send(false);
                 if (!decoded.isAdmin) return res.send(false);
                 next();
@@ -27,23 +27,17 @@ module.exports = function(app, db) {
             next();
         }
     });
-    
-    app.get('/testdb', async (req, res) => {
-        res.send(`DB url ${process.env.DATABASE_URL}`);
+
+    app.get('/test', (req, res) => {
+        res.send(process.env.DATABASE_URL);
     });
 
-    app.post('/category', async (req, res) => {       
-        /*let products = await db.Models.Product.findAll();
-        res.send(products);
-*/
+    app.post('/category', async (req, res) => {
+        console.log("category");
         let object = convertToObj(req.body);
-        object = object.data;   
-        if (object == null || object.findText == null) object = {findText: ''};
+        object = object.data;
+        if (object == null || object.findText == null) object = { findText: '' };
         let products = await db.sequelize.query(`SELECT * FROM searchInProducts('${object.findText}');`);
-        console.log("findtext");
-        console.log(req.body);
-        console.log(object.data);
-        console.log(object.findText);
         res.send(products[0]);
     });
 
@@ -65,7 +59,7 @@ module.exports = function(app, db) {
         }
         else {
             res.send(false);
-        } 
+        }
     });
 
     app.post('/category/create', async (req, res) => {
@@ -79,6 +73,7 @@ module.exports = function(app, db) {
             url: object.url
         });
         res.send(product);
+        updateProducts(db);
     });
 
     app.post('/reg', async (req, res) => {
@@ -122,9 +117,10 @@ module.exports = function(app, db) {
         }, {
             where: {
                 id: id,
-            } 
+            }
         });
         res.send(object);
+        updateProducts(db);
     });
 
     app.post('/category/delete', async (req, res) => {
@@ -136,35 +132,101 @@ module.exports = function(app, db) {
         await db.Models.Product.destroy({
             where: {
                 id: id,
-            } 
+            }
         });
         res.send(true);
+        updateProducts(db);
     });
 
     app.post('/upload', fileLoad.upload.single('file'), (req, res) => {
         const { file } = req;
 
-        if(!file){
+        if (!file) {
             console.log('File null');
             return res.send(false);
         }
-        
         dropbox({
             resource: 'files/upload',
-            parameters:{
+            parameters: {
                 path: '/' + file.originalname
             },
             readStream: fs.createReadStream(path.resolve(fileLoad.PATH, file.originalname))
-        }, (err, result, response) =>{
+        }, (err, result, response) => {
             if (err) return console.log(err);
-    
+
             console.log('uploaded dropbox');
             res.send(true);
         });
     });
-    
-  
+
+
+    app.post('/vkcallback', (req, res) => {
+        console.log("VK message" + req.body);
+        if (req.body.type == "confirmation") {
+            if (req.body.group_id === 191166908) {
+                res.send("0dab97dc");
+                return;
+            }
+        }
+        const client = new WebSocketClient();
+
+        client.on('connectFailed', (error) => {
+            console.log('Connect Error: ' + error.toString());
+        });
+
+        client.on('connect', async (connection) => {
+            console.log('WebSocket Client Connected');
+            connection.on('error', (error) => {
+                console.log("Connection Error: " + error.toString());
+            });
+            connection.on('close', () => {
+                console.log('echo-protocol Connection Closed');
+            });
+            if (connection.connected) {
+                connection.sendUTF(JSON.stringify({
+                    data: req.body,
+                    type: "updateText"
+                }));
+            }
+            connection.close();
+        });
+        client.connect('wss://wsswarehouse73.herokuapp.com', 'echo-protocol');
+        res.send('ok');
+    });
 };
-let convertToObj = function(obj) {
+
+let convertToObj = function (obj) {
+    console.log(obj.data);
     return JSON.parse(obj.data);
+
 }
+
+let updateProducts = (db) => {
+    const client = new WebSocketClient();
+
+    client.on('connectFailed', (error) => {
+        console.log('Connect Error (connectFailed): ' + error.toString());
+    });
+
+    client.on('connect', async (connection) => {
+        console.log('WebSocket Client Connected');
+        connection.on('error', (error) => {
+            console.log("Connection Error: " + error.toString());
+        });
+        connection.on('close', () => {
+            console.log('echo-protocol Connection Closed');
+        });
+
+        let products = await db.Models.Product.findAll();
+        if (connection.connected) {
+            connection.sendUTF(JSON.stringify({
+                data: products,
+                type: "updateProducts"
+            }));
+        }
+
+        connection.close();
+    });
+
+    client.connect(/*'wss://wsswarehouse73.herokuapp.com'*/"http://localhost:3002", 'echo-protocol');
+};
